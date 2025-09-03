@@ -33,6 +33,11 @@ public sealed class AzureUserAssignedIdentityResource(string name)
     /// </summary>
     public BicepOutputReference PrincipalName => new("principalName", this);
 
+    /// <summary>
+    /// The name of the user assigned identity.
+    /// </summary>
+    public BicepOutputReference NameOutputReference => new("name", this);
+
     private static void ConfigureAppIdentityInfrastructure(AzureResourceInfrastructure infrastructure)
     {
         var userAssignedIdentity = CreateExistingOrNewProvisionableResource(infrastructure,
@@ -55,13 +60,34 @@ public sealed class AzureUserAssignedIdentityResource(string name)
         infrastructure.Add(new ProvisioningOutput("clientId", typeof(string)) { Value = userAssignedIdentity.ClientId });
         infrastructure.Add(new ProvisioningOutput("principalId", typeof(string)) { Value = userAssignedIdentity.PrincipalId });
         infrastructure.Add(new ProvisioningOutput("principalName", typeof(string)) { Value = userAssignedIdentity.Name });
+        infrastructure.Add(new ProvisioningOutput("name", typeof(string)) { Value = userAssignedIdentity.Name });
     }
 
     /// <inheritdoc/>
     public override ProvisionableResource AddAsExistingResource(AzureResourceInfrastructure infra)
     {
-        var store = UserAssignedIdentity.FromExisting(this.GetBicepIdentifier());
-        store.Name = PrincipalName.AsProvisioningParameter(infra);
+        var bicepIdentifier = this.GetBicepIdentifier();
+        var resources = infra.GetProvisionableResources();
+        
+        // Check if a UserAssignedIdentity with the same identifier already exists
+        var existingStore = resources.OfType<UserAssignedIdentity>().SingleOrDefault(store => store.BicepIdentifier == bicepIdentifier);
+        
+        if (existingStore is not null)
+        {
+            return existingStore;
+        }
+        
+        // Create and add new resource if it doesn't exist
+        var store = UserAssignedIdentity.FromExisting(bicepIdentifier);
+
+        if (!TryApplyExistingResourceNameAndScope(
+            this,
+            infra,
+            store))
+        {
+            store.Name = PrincipalName.AsProvisioningParameter(infra);
+        }
+
         infra.Add(store);
         return store;
     }

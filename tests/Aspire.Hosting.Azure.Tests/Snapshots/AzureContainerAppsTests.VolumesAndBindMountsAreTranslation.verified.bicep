@@ -9,9 +9,9 @@ param env_outputs_volumes_api_0 string
 
 param env_outputs_volumes_api_1 string
 
-param env_outputs_bindmounts_api_2 string
+param env_outputs_bindmounts_api_0 string
 
-resource api 'Microsoft.App/containerApps@2024-03-01' = {
+resource api 'Microsoft.App/containerApps@2025-01-01' = {
   name: 'api'
   location: location
   properties: {
@@ -57,7 +57,7 @@ resource api 'Microsoft.App/containerApps@2024-03-01' = {
         {
           name: 'bm0'
           storageType: 'AzureFile'
-          storageName: env_outputs_bindmounts_api_2
+          storageName: env_outputs_bindmounts_api_0
         }
       ]
     }

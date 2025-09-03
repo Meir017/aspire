@@ -307,7 +307,7 @@ public class AzureFunctionsTests
 
         // hardcoded sha256 to make the storage name deterministic
         builder.Configuration["AppHost:Sha256"] = "634f8";
-        builder.AddAzureFunctionsProject<TestProjectWithHttpsNoPort>("funcapp");
+        var funcApp = builder.AddAzureFunctionsProject<TestProjectWithHttpsNoPort>("funcapp");
 
         var app = builder.Build();
 
@@ -315,13 +315,15 @@ public class AzureFunctionsTests
 
         await ExecuteBeforeStartHooksAsync(app, default);
 
+        var (_, bicep) = await GetManifestWithBicep(funcApp.Resource.GetDeploymentTargetAnnotation()!.DeploymentTarget);
+
         var projRolesStorage = Assert.Single(model.Resources.OfType<AzureProvisioningResource>(), r => r.Name == "funcapp-roles-funcstorage634f8");
 
         var (rolesManifest, rolesBicep) = await GetManifestWithBicep(projRolesStorage);
 
-        await Verify(rolesManifest.ToString(), "json")
+        await Verify(bicep, "bicep")
+              .AppendContentAsFile(rolesManifest.ToString(), "json")
               .AppendContentAsFile(rolesBicep, "bicep");
-              
     }
 
     [Fact]
@@ -532,5 +534,70 @@ public class AzureFunctionsTests
                 }
             }
         };
+    }
+
+    [Fact]
+    public void AddAzureFunctionsProject_AddsDefaultLaunchProfileAnnotation_WhenConfigured()
+    {
+        using var builder = TestDistributedApplicationBuilder.Create();
+        
+        // Set the AppHost default launch profile configuration
+        builder.Configuration["AppHost:DefaultLaunchProfileName"] = "TestProfile";
+        
+        builder.AddAzureFunctionsProject<TestProject>("funcapp");
+
+        var functionsResource = Assert.Single(builder.Resources.OfType<AzureFunctionsProjectResource>());
+        
+        // Verify that the DefaultLaunchProfileAnnotation is added
+        Assert.True(functionsResource.TryGetLastAnnotation<DefaultLaunchProfileAnnotation>(out var annotation));
+        Assert.Equal("TestProfile", annotation.LaunchProfileName);
+    }
+
+    [Fact]
+    public void AddAzureFunctionsProject_AddsDefaultLaunchProfileAnnotation_FromDotnetLaunchProfile()
+    {
+        using var builder = TestDistributedApplicationBuilder.Create();
+        
+        // Set the DOTNET_LAUNCH_PROFILE configuration
+        builder.Configuration["DOTNET_LAUNCH_PROFILE"] = "DotnetProfile";
+        
+        builder.AddAzureFunctionsProject<TestProject>("funcapp");
+
+        var functionsResource = Assert.Single(builder.Resources.OfType<AzureFunctionsProjectResource>());
+        
+        // Verify that the DefaultLaunchProfileAnnotation is added
+        Assert.True(functionsResource.TryGetLastAnnotation<DefaultLaunchProfileAnnotation>(out var annotation));
+        Assert.Equal("DotnetProfile", annotation.LaunchProfileName);
+    }
+
+    [Fact]
+    public void AddAzureFunctionsProject_DoesNotAddLaunchProfileAnnotation_WhenNoConfigurationSet()
+    {
+        using var builder = TestDistributedApplicationBuilder.Create();
+        
+        builder.AddAzureFunctionsProject<TestProject>("funcapp");
+
+        var functionsResource = Assert.Single(builder.Resources.OfType<AzureFunctionsProjectResource>());
+        
+        // Verify that no DefaultLaunchProfileAnnotation is added when no configuration is set
+        Assert.False(functionsResource.TryGetLastAnnotation<DefaultLaunchProfileAnnotation>(out _));
+    }
+
+    [Fact]
+    public void AddAzureFunctionsProject_AppHostConfigurationOverridesDotnetLaunchProfile()
+    {
+        using var builder = TestDistributedApplicationBuilder.Create();
+        
+        // Set both configurations, AppHost should take precedence
+        builder.Configuration["AppHost:DefaultLaunchProfileName"] = "AppHostProfile";
+        builder.Configuration["DOTNET_LAUNCH_PROFILE"] = "DotnetProfile";
+        
+        builder.AddAzureFunctionsProject<TestProject>("funcapp");
+
+        var functionsResource = Assert.Single(builder.Resources.OfType<AzureFunctionsProjectResource>());
+        
+        // Verify that AppHost configuration takes precedence
+        Assert.True(functionsResource.TryGetLastAnnotation<DefaultLaunchProfileAnnotation>(out var annotation));
+        Assert.Equal("AppHostProfile", annotation.LaunchProfileName);
     }
 }

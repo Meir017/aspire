@@ -1,17 +1,17 @@
 ﻿@description('The location for the resource(s) to be deployed.')
 param location string = resourceGroup().location
 
-param userPrincipalId string
+param userPrincipalId string = ''
 
 param tags object = { }
 
-resource env_mi 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+resource env_mi 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
   name: take('env_mi-${uniqueString(resourceGroup().id)}', 128)
   location: location
   tags: tags
 }
 
-resource env_acr 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
+resource env_acr 'Microsoft.ContainerRegistry/registries@2025-04-01' = {
   name: take('envacr${uniqueString(resourceGroup().id)}', 50)
   location: location
   sku: {
@@ -30,7 +30,7 @@ resource env_acr_env_mi_AcrPull 'Microsoft.Authorization/roleAssignments@2022-04
   scope: env_acr
 }
 
-resource env_law 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
+resource env_law 'Microsoft.OperationalInsights/workspaces@2025-02-01' = {
   name: take('envlaw-${uniqueString(resourceGroup().id)}', 63)
   location: location
   properties: {
@@ -41,7 +41,7 @@ resource env_law 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
   tags: tags
 }
 
-resource env 'Microsoft.App/managedEnvironments@2024-03-01' = {
+resource env 'Microsoft.App/managedEnvironments@2025-01-01' = {
   name: take('env${uniqueString(resourceGroup().id)}', 24)
   location: location
   properties: {
@@ -68,15 +68,6 @@ resource aspireDashboard 'Microsoft.App/managedEnvironments/dotNetComponents@202
     componentType: 'AspireDashboard'
   }
   parent: env
-}
-
-resource env_Contributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(env.id, userPrincipalId, subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c'))
-  properties: {
-    principalId: userPrincipalId
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')
-  }
-  scope: env
 }
 
 resource env_storageVolume 'Microsoft.Storage/storageAccounts@2024-01-01' = {
@@ -106,7 +97,7 @@ resource shares_volumes_cache_0 'Microsoft.Storage/storageAccounts/fileServices/
   parent: storageVolumeFileService
 }
 
-resource managedStorage_volumes_cache_0 'Microsoft.App/managedEnvironments/storages@2024-03-01' = {
+resource managedStorage_volumes_cache_0 'Microsoft.App/managedEnvironments/storages@2025-01-01' = {
   name: take('managedstoragevolumescache${uniqueString(resourceGroup().id)}', 24)
   properties: {
     azureFile: {
@@ -120,10 +111,6 @@ resource managedStorage_volumes_cache_0 'Microsoft.App/managedEnvironments/stora
 }
 
 output volumes_cache_0 string = managedStorage_volumes_cache_0.name
-
-output MANAGED_IDENTITY_NAME string = env_mi.name
-
-output MANAGED_IDENTITY_PRINCIPAL_ID string = env_mi.properties.principalId
 
 output AZURE_LOG_ANALYTICS_WORKSPACE_NAME string = env_law.name
 

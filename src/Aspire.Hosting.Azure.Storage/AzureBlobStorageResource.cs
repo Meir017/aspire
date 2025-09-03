@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using Aspire.Hosting.ApplicationModel;
-using Azure.Provisioning;
 
 namespace Aspire.Hosting.Azure;
 
@@ -16,10 +15,6 @@ public class AzureBlobStorageResource(string name, AzureStorageResource storage)
     IResourceWithParent<AzureStorageResource>,
     IResourceWithAzureFunctionsConfig
 {
-    // NOTE: if ever these contants are changed, the AzureBlobStorageContainerSettings in Aspire.Azure.Storage.Blobs class should be updated as well.
-    private const string Endpoint = nameof(Endpoint);
-    private const string ContainerName = nameof(ContainerName);
-
     /// <summary>
     /// Gets the parent AzureStorageResource of this AzureBlobStorageResource.
     /// </summary>
@@ -39,12 +34,17 @@ public class AzureBlobStorageResource(string name, AzureStorageResource storage)
         }
 
         ReferenceExpressionBuilder builder = new();
-        builder.Append($"{Endpoint}=\"{ConnectionStringExpression}\";");
 
-        if (!string.IsNullOrEmpty(blobContainerName))
+        if (Parent.IsEmulator)
         {
-            builder.Append($"{ContainerName}={blobContainerName};");
+            builder.AppendFormatted(ConnectionStringExpression);
         }
+        else
+        {
+            builder.Append($"Endpoint={ConnectionStringExpression}");
+        }
+
+        builder.Append($";ContainerName={blobContainerName}");
 
         return builder.Build();
     }
@@ -67,19 +67,9 @@ public class AzureBlobStorageResource(string name, AzureStorageResource storage)
             target[$"{connectionName}__queueServiceUri"] = Parent.QueueEndpoint;
 
             // Injected to support Aspire client integration for Azure Storage.
-            // We don't inject the queue resource here since we on;y want it to
+            // We don't inject the queue resource here since we only want it to
             // be accessible by the Functions host.
             target[$"{AzureStorageResource.BlobsConnectionKeyPrefix}__{connectionName}__ServiceUri"] = Parent.BlobEndpoint;
         }
-    }
-
-    /// <summary>
-    /// Converts the current instance to a provisioning entity.
-    /// </summary>
-    /// <returns>A <see cref="global::Azure.Provisioning.Storage.BlobService"/> instance.</returns>
-    internal global::Azure.Provisioning.Storage.BlobService ToProvisioningEntity()
-    {
-        global::Azure.Provisioning.Storage.BlobService service = new(Infrastructure.NormalizeBicepIdentifier(Name));
-        return service;
     }
 }

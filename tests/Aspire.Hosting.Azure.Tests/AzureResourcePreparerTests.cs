@@ -71,7 +71,7 @@ public class AzureResourcePreparerTests
 
             var storageRolesManifest = await GetManifestWithBicep(storageRoles, skipPreparer: true);
             await Verify(storageRolesManifest.BicepText, extension: "bicep");
-            
+
         }
         else
         {
@@ -115,7 +115,7 @@ public class AzureResourcePreparerTests
 
             var storageRolesManifest = await GetManifestWithBicep(storageRoles, skipPreparer: true);
             await Verify(storageRolesManifest.BicepText, extension: "bicep");
-            
+
         }
         else
         {
@@ -131,6 +131,28 @@ public class AzureResourcePreparerTests
             Assert.Single(api2RoleAssignments.Roles,
                 role => role.Id == StorageBuiltInRole.StorageBlobDataContributor.ToString());
         }
+    }
+
+    [Fact]
+    public async Task DoesNotApplyRoleAssignmentsInRunModeForEmulators()
+    {
+        using var builder = TestDistributedApplicationBuilder.Create(DistributedApplicationOperation.Run);
+        builder.AddAzureContainerAppEnvironment("env");
+
+        builder.AddBicepTemplateString("foo", "");
+
+        var dbsrv = builder.AddAzureSqlServer("dbsrv").RunAsContainer();
+        var db = dbsrv.AddDatabase("db");
+
+        var api = builder.AddProject<Project>("api", launchProfileName: null)
+            .WithReference(db);
+
+        using var app = builder.Build();
+        var model = app.Services.GetRequiredService<DistributedApplicationModel>();
+        await ExecuteBeforeStartHooksAsync(app, default);
+
+        // in RunMode, we skip applying the role assignments to a new 'dbsrv-roles' resource, since the storage is running as emulator.
+        Assert.DoesNotContain(model.Resources.OfType<AzureProvisioningResource>(), r => r.Name == "dbsrv-roles");
     }
 
     [Fact]
@@ -158,6 +180,59 @@ public class AzureResourcePreparerTests
         Assert.True(api.Resource.TryGetLastAnnotation<RoleAssignmentAnnotation>(out var apiRoleAssignments));
         Assert.Equal(storage.Resource, apiRoleAssignments.Target);
         Assert.Equal(defaultAssignments.Roles, apiRoleAssignments.Roles);
+    }
+
+    [Fact]
+    public async Task NullEnvironmentVariableIsIgnored()
+    {
+        using var builder = TestDistributedApplicationBuilder.Create(DistributedApplicationOperation.Publish);
+        builder.AddAzureContainerAppEnvironment("env");
+
+        var storage = builder.AddAzureStorage("storage");
+
+        // Create a project with an environment variable callback that sets a null value
+        var api = builder.AddProject<Project>("api", launchProfileName: null)
+            .WithEnvironment(context =>
+            {
+                // This simulates the issue where a callback adds a null value
+                context.EnvironmentVariables["NULL_ENV"] = null!;
+                context.EnvironmentVariables["VALID_ENV"] = "valid_value";
+            });
+
+        using var app = builder.Build();
+        
+        // This should not throw a NullReferenceException
+        await ExecuteBeforeStartHooksAsync(app, default);
+
+        // Test passes if we reach this point without exceptions
+        Assert.True(true);
+    }
+
+    [Fact]
+    public async Task NullCommandLineArgIsIgnored()
+    {
+        using var builder = TestDistributedApplicationBuilder.Create(DistributedApplicationOperation.Publish);
+        builder.AddAzureContainerAppEnvironment("env");
+
+        var storage = builder.AddAzureStorage("storage");
+
+        // Create a project with a command line args callback that adds a null value
+        var api = builder.AddProject<Project>("api", launchProfileName: null)
+            .WithArgs(context =>
+            {
+                // This simulates the issue where a callback adds a null value
+                context.Args.Add("--valid-arg");
+                context.Args.Add(null!);
+                context.Args.Add("another-valid-arg");
+            });
+
+        using var app = builder.Build();
+        
+        // This should not throw a NullReferenceException
+        await ExecuteBeforeStartHooksAsync(app, default);
+
+        // Test passes if we reach this point without exceptions
+        Assert.True(true);
     }
 
     private sealed class Project : IProjectMetadata

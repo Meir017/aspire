@@ -187,15 +187,6 @@ namespace Aspire.Dashboard.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Select filters.
-        /// </summary>
-        public static string ChartContainerSelectFilters {
-            get {
-                return ResourceManager.GetString("ChartContainerSelectFilters", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Show count.
         /// </summary>
         public static string ChartContainerShowCountLabel {
@@ -475,6 +466,15 @@ namespace Aspire.Dashboard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Hide hidden resources.
+        /// </summary>
+        public static string HideHiddenResources {
+            get {
+                return ResourceManager.GetString("HideHiddenResources", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to (All).
         /// </summary>
         public static string LabelAll {
@@ -504,9 +504,9 @@ namespace Aspire.Dashboard.Resources {
         /// <summary>
         ///   Looks up a localized string similar to (Unset).
         /// </summary>
-        public static string LabelUnset {
+        public static string LabelValueUnset {
             get {
-                return ResourceManager.GetString("LabelUnset", resourceCulture);
+                return ResourceManager.GetString("LabelValueUnset", resourceCulture);
             }
         }
         
@@ -552,15 +552,6 @@ namespace Aspire.Dashboard.Resources {
         public static string MetricTableNoMetricsFound {
             get {
                 return ResourceManager.GetString("MetricTableNoMetricsFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Show latest 10 values.
-        /// </summary>
-        public static string MetricTableShowLatestValues {
-            get {
-                return ResourceManager.GetString("MetricTableShowLatestValues", resourceCulture);
             }
         }
         
@@ -664,6 +655,15 @@ namespace Aspire.Dashboard.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Exemplar.
+        /// </summary>
+        public static string PlotlyChartExemplar {
+            get {
+                return ResourceManager.GetString("PlotlyChartExemplar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Exemplars.
         /// </summary>
         public static string PlotlyChartExemplars {
@@ -714,6 +714,15 @@ namespace Aspire.Dashboard.Resources {
         public static string PropertyGridValueColumnHeader {
             get {
                 return ResourceManager.GetString("PropertyGridValueColumnHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resource actions.
+        /// </summary>
+        public static string ResourceActions {
+            get {
+                return ResourceManager.GetString("ResourceActions", resourceCulture);
             }
         }
         
@@ -826,11 +835,20 @@ namespace Aspire.Dashboard.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Select an application.
+        ///   Looks up a localized string similar to Select a resource.
         /// </summary>
-        public static string SelectAnApplication {
+        public static string SelectAResource {
             get {
-                return ResourceManager.GetString("SelectAnApplication", resourceCulture);
+                return ResourceManager.GetString("SelectAResource", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show hidden resources.
+        /// </summary>
+        public static string ShowHiddenResources {
+            get {
+                return ResourceManager.GetString("ShowHiddenResources", resourceCulture);
             }
         }
         
@@ -952,33 +970,6 @@ namespace Aspire.Dashboard.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Add filter.
-        /// </summary>
-        public static string StructuredFilteringAddFilter {
-            get {
-                return ResourceManager.GetString("StructuredFilteringAddFilter", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Filters.
-        /// </summary>
-        public static string StructuredFilteringFilters {
-            get {
-                return ResourceManager.GetString("StructuredFilteringFilters", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No filters.
-        /// </summary>
-        public static string StructuredFilteringNoFilters {
-            get {
-                return ResourceManager.GetString("StructuredFilteringNoFilters", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Context.
         /// </summary>
         public static string StructuredLogsDetailsContextHeader {
@@ -1087,24 +1078,6 @@ namespace Aspire.Dashboard.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Total: &lt;strong&gt;{0} result(s) found&lt;/strong&gt;.
-        /// </summary>
-        public static string TotalItemsFooterText {
-            get {
-                return ResourceManager.GetString("TotalItemsFooterText", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Attributes.
-        /// </summary>
-        public static string TraceDetailAttributesHeader {
-            get {
-                return ResourceManager.GetString("TraceDetailAttributesHeader", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to View.
         /// </summary>
         public static string ViewAction {
@@ -1137,6 +1110,33 @@ namespace Aspire.Dashboard.Resources {
         public static string VolumePathColumnHeader {
             get {
                 return ResourceManager.GetString("VolumePathColumnHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Collapse all.
+        /// </summary>
+        public static string CollapseAllSpansText {
+            get {
+                return ResourceManager.GetString("CollapseAllSpansText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expand all.
+        /// </summary>
+        public static string ExpandAllSpansText {
+            get {
+                return ResourceManager.GetString("ExpandAllSpansText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View structured logs.
+        /// </summary>
+        public static string ViewStructuredLogsText {
+            get {
+                return ResourceManager.GetString("ViewStructuredLogsText", resourceCulture);
             }
         }
     }
